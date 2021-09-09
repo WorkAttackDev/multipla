@@ -8,7 +8,8 @@ import { knex } from "../config/db";
 import { tablesName } from "../config/db/utils";
 
 export const createProxyPayReference = async (req: Request, res: Response) => {
-  if (!req.body) return res.status(400).json({ message: "no request body" });
+  if (!req.body)
+    return res.status(200).json({ message: "no body was provided created" });
 
   const DataSchema = z.object({
     attributes: z.object({
