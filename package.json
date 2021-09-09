@@ -10,8 +10,8 @@
     "migrate:up": "npx knex migrate:latest  --knexfile src/config/db/knexfile.ts",
     "migrate:new": "npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
     "migrate:down": "npx knex migrate:down --knexfile src/config/db/knexfile.ts",
-    "migrate:prod:up": "npx knex migrate:latest  --knexfile build/src/config/db/knexfile.js",
-    "migrate:prod:down": "npx knex migrate:down  --knexfile build/src/config/db/knexfile.js"
+    "migrate:prod:up": "cross-env NODE_ENV=production npx knex migrate:latest  --knexfile build/src/config/db/knexfile.js",
+    "migrate:prod:down": "cross-env NODE_ENV=production npx knex migrate:down  --knexfile build/src/config/db/knexfile.js"
   },
   "author": "Denilson Costa",
   "license": "ISC",
