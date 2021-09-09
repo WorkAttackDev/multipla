@@ -22,7 +22,7 @@ export default {
     connection: {
       host: "localhost",
       port: 3306,
-      user: "apidb",
+      user: "apidb_user",
       password: "Angola2021",
       database: "ipworld",
     },
