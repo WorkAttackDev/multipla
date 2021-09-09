@@ -20,7 +20,7 @@ export default {
   production: {
     client: "mysql",
     connection: {
-      host: "169.239.132.108",
+      host: "localhost",
       port: 3306,
       user: "apidb_user",
       password: "Angola2021",
