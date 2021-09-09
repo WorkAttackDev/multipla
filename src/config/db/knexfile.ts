@@ -20,7 +20,7 @@ export default {
   production: {
     client: "mysql",
     connection: {
-      host: "localhost",
+      host: "srv-splynx",
       port: 3306,
       user: "apidb_user",
       password: "Angola2021",
