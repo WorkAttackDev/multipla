@@ -20,11 +20,12 @@ export default {
   production: {
     client: "mysql",
     connection: {
-      host: "srv-splynx",
-      port: 3306,
+      // host: "srv-splynx",
+      // port: 3306,
       user: "apidb_user",
       password: "Angola2021",
       database: "ipworld",
+      socketPath: "/var/run/mysqld/mysqld.sock",
     },
     pool: {
       min: 2,
