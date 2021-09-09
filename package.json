@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.ts",
+    "build": "npx tsc",
+    "start": "node build/index.js",
     "migrate:new": "npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
     "migrate:up": "npx knex migrate:latest  --knexfile src/config/db/knexfile.ts",
     "migrate:down": "npx knex migrate:down --knexfile src/config/db/knexfile.ts"
