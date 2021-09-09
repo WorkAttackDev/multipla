@@ -25,6 +25,7 @@ export default {
       user: "apidb_user",
       password: "Angola2021",
       database: "ipworld",
+      socketPath: "/var/run/mysqld/mysqld.sock",
     },
     pool: {
       min: 2,
