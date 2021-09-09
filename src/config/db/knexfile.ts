@@ -17,15 +17,14 @@ export default {
       extension: "ts",
     },
   },
-
   production: {
     client: "mysql",
     connection: {
-      host: "127.0.0.1",
+      host: "localhost",
       port: 3306,
-      user: "your_database_user",
-      password: "your_database_password",
-      database: "myapp_test",
+      user: "apidb",
+      password: "Angola2021",
+      database: "ipworld",
     },
     pool: {
       min: 2,
