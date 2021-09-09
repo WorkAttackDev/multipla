@@ -1,18 +1,19 @@
 import express, { Request, Response, NextFunction } from "express";
 import { createProxyPayReference, createSplynxPayment } from "./src/controller";
 
-import dotenv from "dotenv";
-
-dotenv.config();
+require("dotenv").config();
 
 const app = express();
 
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(express.json());
 
 app.get("/", async (req: Request, res: Response) => {
-  res.json({ message: "Hello world" });
+  res.json({
+    message: "Multipla API",
+    env: process.env.NODE_ENV,
+  });
 });
 
 app.post("/splynxcallback", async (req: Request, res: Response) => {
