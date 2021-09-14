@@ -1,13 +1,32 @@
 import express, { Request, Response, NextFunction } from "express";
-import { createProxyPayReference, createSplynxPayment } from "./src/controller";
+import http from "http";
+import { verifySignature } from "./src/utils";
+import { Buffer } from "buffer";
+import { createProxyPayReference } from "./src/controller/createProxyPayReference";
+import { createSplynxPayment } from "./src/controller/createSplynxPayment";
+import env from "dotenv";
 
-require("dotenv").config();
+env.config({ debug: true });
+
+declare global {
+  namespace Express {
+    interface Request {
+      rawBody?: Buffer;
+    }
+  }
+}
 
 const app = express();
 
 const port = process.env.PORT || 3001;
 
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req: http.IncomingMessage & { rawBody?: any }, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 
 app.get("/", async (req: Request, res: Response) => {
   res.json({
@@ -21,8 +40,25 @@ app.post("/splynxcallback", async (req: Request, res: Response) => {
 });
 
 app.post("/proxypaycallback", async (req: Request, res: Response) => {
-  console.log(req.body);
-  await createSplynxPayment(req, res);
+  try {
+    const check = verifySignature({
+      req,
+      secret: process.env.PROXY_PAY_API_KEY_SANDBOX!,
+      signatureHeaderKey: "x-signature",
+    });
+
+    if (check.status !== 200)
+      return res
+        .status(check.status)
+        .json({ message: check.message, entity: "Proxypay" });
+
+    await createSplynxPayment(req, res);
+  } catch (error) {
+    console.log(error);
+    res
+      .status(400)
+      .json({ message: "error validating the proxypay callback request" });
+  }
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
