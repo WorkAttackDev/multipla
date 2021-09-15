@@ -2,7 +2,7 @@
 import SplynxApi from "splynx-nodejs-api";
 import { isProduction } from "./utils";
 
-const SPLYNX_HOST = !isProduction
+const SPLYNX_HOST = isProduction
   ? "http://169.239.132.108/"
   : "https://demo.splynx.com/";
 

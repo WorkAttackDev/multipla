@@ -37,7 +37,7 @@ export const createProxyPayReference = async (req: Request, res: Response) => {
 
   const data: Data = req.body.data;
 
-  console.log(data);
+  console.log({ reques_body: data });
 
   try {
     const refRes = await AxiosProxyPayInstance.put(
@@ -57,7 +57,7 @@ export const createProxyPayReference = async (req: Request, res: Response) => {
     return res.status(200).json({ message: "reference created" });
   } catch (e) {
     const error = e as AxiosError;
-    console.log(error.message);
+    console.log({ create_reference_error: error });
     return res
       .status(500)
       .json({ message: "error creating the reference on proxypay" });

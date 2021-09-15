@@ -6,7 +6,9 @@ import { createProxyPayReference } from "./src/controller/createProxyPayReferenc
 import { createSplynxPayment } from "./src/controller/createSplynxPayment";
 import env from "dotenv";
 
-env.config({ debug: true });
+const envs = env.config({ debug: true });
+
+console.log(envs.parsed);
 
 declare global {
   namespace Express {
