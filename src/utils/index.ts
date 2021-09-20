@@ -46,8 +46,6 @@ export const verifySignature = ({
       status: 401,
     };
 
-  console.log(req.rawBody, secret);
-
   const signature = getHash(req.rawBody, secret, algorithm);
 
   const requestSignature = req.headers[signatureHeaderKey];

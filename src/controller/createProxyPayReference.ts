@@ -40,19 +40,16 @@ export const createProxyPayReference = async (req: Request, res: Response) => {
   console.log({ reques_body: data });
 
   try {
-    const refRes = await AxiosProxyPayInstance.put(
-      `/references/${data.attributes.login}`,
-      {
-        custom_fields: {
-          callback_url: `${
-            isProduction
-              ? "http://api.izinet.ao"
-              : "https://5a29-102-219-187-27.ngrok.io"
-          }/proxypaycallback`,
-          user_id: data.attributes.id,
-        },
-      }
-    );
+    await AxiosProxyPayInstance.put(`/references/${data.attributes.login}`, {
+      custom_fields: {
+        callback_url: `${
+          isProduction
+            ? "http://api.izinet.ao"
+            : "https://3a25-129-122-161-9.ngrok.io"
+        }/proxypaycallback`,
+        user_id: data.attributes.id,
+      },
+    });
 
     return res.status(200).json({ message: "reference created" });
   } catch (e) {

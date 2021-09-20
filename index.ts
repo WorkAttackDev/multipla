@@ -1,14 +1,11 @@
+require("dotenv").config();
+
 import express, { Request, Response, NextFunction } from "express";
 import http from "http";
 import { verifySignature } from "./src/utils";
 import { Buffer } from "buffer";
 import { createProxyPayReference } from "./src/controller/createProxyPayReference";
 import { createSplynxPayment } from "./src/controller/createSplynxPayment";
-import env from "dotenv";
-
-const envs = env.config({ debug: true });
-
-console.log(envs.parsed);
 
 declare global {
   namespace Express {
@@ -45,7 +42,7 @@ app.post("/proxypaycallback", async (req: Request, res: Response) => {
   try {
     const check = verifySignature({
       req,
-      secret: process.env.PROXY_PAY_API_KEY_SANDBOX!,
+      secret: process.env.PROXY_PAY_API_KEY!,
       signatureHeaderKey: "x-signature",
     });
 

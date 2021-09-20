@@ -5,18 +5,16 @@ import { tablesName } from "../config/db/utils";
 import ProxyPayPaymentPayload from "../models/ProxyPayPaymentPayload";
 import { formatTodayDate } from "../utils";
 
-export const createSplynxPayment = async (req: Request, res: Response) => {
-  console.log({ proxyPayCallback: req.body });
+interface PaymentProps {
+  id: number;
+  payment_id: string;
+}
 
+export const createSplynxPayment = async (req: Request, res: Response) => {
   if (!req.body)
     return res.status(400).json({ message: "no request was provided body" });
 
   const paymentPayload: ProxyPayPaymentPayload = req.body;
-
-  interface PaymentProps {
-    id: number;
-    payment_id: string;
-  }
 
   const payment = await knex<PaymentProps>(tablesName.payments)
     .where("payment_id", paymentPayload.id.toString())
@@ -25,8 +23,10 @@ export const createSplynxPayment = async (req: Request, res: Response) => {
   if (payment)
     return res.status(200).json({ message: "payment already exists" });
 
+  const trx = await knex.transaction();
+
   try {
-    await knex<PaymentProps>(tablesName.payments).insert({
+    await trx<PaymentProps>(tablesName.payments).insert({
       payment_id: paymentPayload.id.toString(),
     });
 
@@ -48,13 +48,16 @@ export const createSplynxPayment = async (req: Request, res: Response) => {
 
     const data = await api.post("admin/finance/payments", postParams);
 
-    console.log(data);
+    console.log({ message: "sucesso", data });
+
+    await trx.commit();
 
     return res.json({
       message: "success",
       paymentId: paymentPayload.id.toString(),
     });
   } catch (error) {
+    await trx.rollback();
     console.log(error);
     return res.status(500).json({ message: "error processing payment" });
   }
