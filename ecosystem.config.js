@@ -1,26 +1,25 @@
+require("dotenv").config();
 module.exports = {
   apps: [
     {
-      name: "api",
+      name: process.env.APP_NAME,
       script: "npm start",
-      args: "--port 3001",
       env: {
-        PORT: 3001,
-        // PROXYPAY
-        PROXY_PAY_URL: "https://api.sandbox.proxypay.co.ao",
-        PROXY_PAY_API_KEY: "jnmkdkl64j9sq7qcnrv1isrusnln2ddp",
-        // SPLINX
-        SPLYNX_API_KEY: "76ca38fdd3f172f71049a7e2967d4bb9",
-        SPLYNX_HOOK_SECRET: "12345678",
-        SPLYNX_USER: "proxypay-api-user",
-        SPLYNX_PASSWORD: "JHfLsu8M",
+        NODE_ENV: process.env.NODE_ENV,
+        PORT: process.env.PORT,
+        PROXY_PAY_URL: process.env.PROXY_PAY_URL,
+        PROXY_PAY_API_KEY: process.env.PROXY_PAY_API_KEY,
+        SPLYNX_API_KEY: process.env.SPLYNX_API_KEY,
+        SPLYNX_HOOK_SECRET: process.env.SPLYNX_HOOK_SECRET,
+        SPLYNX_USER: process.env.SPLYNX_USER,
+        SPLYNX_PASSWORD: process.env.SPLYNX_PASSWORD,
         // DATABASE
-        DB_HOST: "srv-splynx",
-        DB_PORT: 3306,
-        DB_USER: "apidb_user",
-        DB_PASSWORD: "Angola2021",
-        DB_NAME: "ipworld",
-        DB_SOCKET_PATH: "/var/run/mysqld/mysqld.sock",
+        DB_HOST: process.env.DB_HOST,
+        DB_PORT: process.env.DB_PORT,
+        DB_USER: process.env.DB_USER,
+        DB_PASSWORD: process.env.DB_PASSWORD,
+        DB_NAME: process.env.DB_NAME,
+        DB_SOCKET_PATH: process.env.DB_SOCKET_PATH,
       },
     },
   ],

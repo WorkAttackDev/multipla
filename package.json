@@ -1,11 +1,11 @@
 {
-  "name": "splinx-api",
-  "version": "1.0.0",
-  "description": "API for splinx system",
+  "name": "izinet-api",
+  "version": "2.0.0",
+  "description": "API for izinet company",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.ts",
-    "build": "cross-env NODE_ENV=production npx tsc",
+    "build": "cross-env NODE_ENV=production npx tsc && cp .env ./build",
     "start": "cross-env NODE_ENV=production node build/index.js >> app.log",
     "migrate:up": "npx knex migrate:latest  --knexfile src/config/db/knexfile.ts",
     "migrate:new": "npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
@@ -13,7 +13,7 @@
     "migrate:prod:up": "cross-env NODE_ENV=production npx knex migrate:latest  --knexfile build/src/config/db/knexfile.js",
     "migrate:prod:down": "cross-env NODE_ENV=production npx knex migrate:down  --knexfile build/src/config/db/knexfile.js"
   },
-  "author": "Denilson Costa",
+  "author": "WorkAttack",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.3",
