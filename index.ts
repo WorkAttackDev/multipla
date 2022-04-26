@@ -5,7 +5,8 @@ import http from "http";
 import { verifySignature } from "./src/utils";
 import { Buffer } from "buffer";
 import { createProxyPayReference } from "./src/controller/createProxyPayReference";
-import { createSplynxPayment } from "./src/controller/createSplynxPayment";
+import { processPaymentToSplinxController } from "./src/controller/processPaymentToSplinxController";
+import { processPaymentsToSplinxController } from "./src/controller/processPaymentsToSplinxController";
 
 declare global {
   namespace Express {
@@ -34,6 +35,10 @@ app.get("/", async (req: Request, res: Response) => {
   });
 });
 
+app.get("/process-payments", async (req: Request, res: Response) => {
+  await processPaymentsToSplinxController(req, res);
+});
+
 app.post("/splynxcallback", async (req: Request, res: Response) => {
   await createProxyPayReference(req, res);
 });
@@ -51,7 +56,7 @@ app.post("/proxypaycallback", async (req: Request, res: Response) => {
         .status(check.status)
         .json({ message: check.message, entity: "Proxypay" });
 
-    await createSplynxPayment(req, res);
+    await processPaymentToSplinxController(req, res);
   } catch (error) {
     console.log(error);
     res
