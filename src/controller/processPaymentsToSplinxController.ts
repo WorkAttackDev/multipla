@@ -51,10 +51,7 @@ export const processPaymentsToSplinxController = async (
       };
       const data = await api.post("admin/finance/payments", postParams);
       console.log({ message: "sucesso", data: JSON.stringify(data) });
-    }
-
-    for (const payment of paymentsOnHold) {
-      await AxiosProxyPayInstance.delete(`/payments/${payment.id}`);
+      await AxiosProxyPayInstance.delete(`/payments/${paymentPayload.id}`);
     }
 
     await trx.commit();
