@@ -1,6 +1,7 @@
 import { Knex } from "knex";
 import { tablesName } from "../../config/db/utils";
 import ProxyPayPaymentPayload from "../../models/ProxyPayPaymentPayload";
+import { PaymentProps } from "./types";
 
 export default async ({
   trx,

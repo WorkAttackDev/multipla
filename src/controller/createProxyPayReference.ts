@@ -44,7 +44,7 @@ export const createProxyPayReference = async (req: Request, res: Response) => {
       custom_fields: {
         callback_url: `${
           isProduction
-            ? "http://api.izinet.ao"
+            ? process.env.API_URL || "http://api.izinet.ao"
             : "https://3a25-129-122-161-9.ngrok.io"
         }/proxypaycallback`,
         user_id: data.attributes.id,

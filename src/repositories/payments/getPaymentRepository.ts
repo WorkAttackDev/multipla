@@ -1,6 +1,7 @@
 import { knex } from "../../config/db";
 import { tablesName } from "../../config/db/utils";
 import ProxyPayPaymentPayload from "../../models/ProxyPayPaymentPayload";
+import { PaymentProps } from "./types";
 
 const getPaymentRepository = async (paymentPayload: ProxyPayPaymentPayload) =>
   await knex<PaymentProps>(tablesName.payments)
