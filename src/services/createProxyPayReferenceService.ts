@@ -14,6 +14,9 @@ const createProxyPayReferenceService = async (data: {
       }/proxypaycallback`,
       user_id: data.id,
     },
+  }).catch((error) => {
+    console.error(error);
+    throw new Error("error creating the reference");
   });
 };
 

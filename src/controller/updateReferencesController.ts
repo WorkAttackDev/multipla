@@ -19,6 +19,8 @@ export const updateReferencesController = async (
 
     const validCustomers = z.array(simpleCostumerSchema).parse(customers);
 
+    console.log(validCustomers);
+
     const results = await Promise.allSettled(
       validCustomers.map((c) => createProxyPayReferenceService(c))
     );
