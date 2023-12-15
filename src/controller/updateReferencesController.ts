@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { getSplynxApi } from "../config/app";
 import { SimpleCostumerType, simpleCostumerSchema } from "../models/Costumer";
 import createProxyPayReferenceService from "../services/createProxyPayReferenceService";
+import { z } from "zod";
 
 export const updateReferencesController = async (
   req: Request,
@@ -16,10 +17,10 @@ export const updateReferencesController = async (
       return res.status(404).json({ message: "no customers found" });
     }
 
+    const validCustomers = z.array(simpleCostumerSchema).parse(customers);
+
     const results = await Promise.allSettled(
-      customers.map((c) =>
-        createProxyPayReferenceService(simpleCostumerSchema.parse(c))
-      )
+      validCustomers.map((c) => createProxyPayReferenceService(c))
     );
 
     type SimpleCostumerWithNameType = SimpleCostumerType & {
@@ -30,7 +31,11 @@ export const updateReferencesController = async (
     const successCustomers: SimpleCostumerWithNameType[] = [];
 
     const [successCount, failureCount] = results.reduce(
-      ([success, failure], result, index) => {
+      (
+        [success, failure]: [number, number],
+        result: PromiseSettledResult<void>,
+        index: number
+      ): [number, number] => {
         const cos = customers[index];
         if (result.status === "fulfilled") {
           successCustomers.push({
