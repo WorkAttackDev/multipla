@@ -3,3 +3,4 @@ build/
 *.log
 teste.js
 .env
+test.js

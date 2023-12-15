@@ -3,7 +3,7 @@ import SplynxApi from "splynx-nodejs-api";
 import { isProduction } from "./utils";
 
 const SPLYNX_HOST = isProduction
-  ? "http://169.239.132.108/"
+  ? "https://splynx.izinet.ao/"
   : "https://demo.splynx.com/";
 
 // export const API_KEY = "28a38377afc59b2018f00e95b1c98f4b";

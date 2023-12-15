@@ -7,6 +7,8 @@ import { Buffer } from "buffer";
 import { createProxyPayReference } from "./src/controller/createProxyPayReference";
 import { processPaymentToSplinxController } from "./src/controller/processPaymentToSplinxController";
 import { processPaymentsToSplinxController } from "./src/controller/processPaymentsToSplinxController";
+import { updateReferencesController } from "./src/controller/updateReferencesController";
+import { checkRoutePass } from "./src/config/routePass";
 
 declare global {
   namespace Express {
@@ -30,14 +32,26 @@ app.use(
 
 app.get("/", async (req: Request, res: Response) => {
   res.json({
-    message: "Multipla API",
+    message: "Izinet payment process API",
     env: process.env.NODE_ENV,
   });
 });
 
-app.get("/process-payments", async (req: Request, res: Response) => {
-  await processPaymentsToSplinxController(req, res);
-});
+app.get(
+  "/update-references",
+  checkRoutePass,
+  async (req: Request, res: Response) => {
+    await updateReferencesController(req, res);
+  }
+);
+
+app.get(
+  "/process-payments",
+  checkRoutePass,
+  async (req: Request, res: Response) => {
+    await processPaymentsToSplinxController(req, res);
+  }
+);
 
 app.post("/splynxcallback", async (req: Request, res: Response) => {
   await createProxyPayReference(req, res);
@@ -66,8 +80,13 @@ app.post("/proxypaycallback", async (req: Request, res: Response) => {
 });
 
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something broke!" });
+  console.error(err);
+
+  if (err instanceof SyntaxError) {
+    return res.status(400).json({ message: "Bad Request" });
+  }
+
+  return res.status(500).json({ message: "Something broke!" });
 });
 
 app.listen(port, function () {

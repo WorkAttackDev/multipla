@@ -1,8 +1,7 @@
 import { AxiosError } from "axios";
 import { Request, Response } from "express";
 import { z } from "zod";
-import { AxiosProxyPayInstance } from "../config/axios";
-import { isProduction } from "../config/utils";
+import createProxyPayReferenceService from "../services/createProxyPayReferenceService";
 import { verifySignature } from "../utils";
 
 export const createProxyPayReference = async (req: Request, res: Response) => {
@@ -40,16 +39,7 @@ export const createProxyPayReference = async (req: Request, res: Response) => {
   console.log({ reques_body: data });
 
   try {
-    await AxiosProxyPayInstance.put(`/references/${data.attributes.login}`, {
-      custom_fields: {
-        callback_url: `${
-          isProduction
-            ? process.env.API_URL || "http://api.izinet.ao"
-            : "https://3a25-129-122-161-9.ngrok.io"
-        }/proxypaycallback`,
-        user_id: data.attributes.id,
-      },
-    });
+    await createProxyPayReferenceService(data.attributes);
 
     return res.status(200).json({ message: "reference created" });
   } catch (e) {
