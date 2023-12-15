@@ -8,6 +8,7 @@ module.exports = {
         NODE_ENV: process.env.NODE_ENV,
         PORT: process.env.PORT,
         API_URL: process.env.API_URL,
+        API_ROUTE_PASS: process.env.API_ROUTE_PASS,
         PROXY_PAY_URL: process.env.PROXY_PAY_URL,
         PROXY_PAY_API_KEY: process.env.PROXY_PAY_API_KEY,
         SPLYNX_API_KEY: process.env.SPLYNX_API_KEY,
