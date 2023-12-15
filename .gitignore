@@ -4,3 +4,4 @@ build/
 teste.js
 .env
 test.js
+pnpm*
