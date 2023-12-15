@@ -22,13 +22,29 @@ export const updateReferencesController = async (
       )
     );
 
-    const failedCustomers: SimpleCostumerType[] = [];
+    type SimpleCostumerWithNameType = SimpleCostumerType & {
+      name: string;
+    };
+
+    const failedCustomers: SimpleCostumerWithNameType[] = [];
+    const successCustomers: SimpleCostumerWithNameType[] = [];
+
     const [successCount, failureCount] = results.reduce(
       ([success, failure], result, index) => {
+        const cos = customers[index];
         if (result.status === "fulfilled") {
+          successCustomers.push({
+            id: cos.id,
+            login: cos.login,
+            name: cos.name,
+          });
           return [success + 1, failure];
         } else {
-          failedCustomers.push(customers[index]);
+          failedCustomers.push({
+            id: cos.id,
+            login: cos.login,
+            name: cos.name,
+          });
           return [success, failure + 1];
         }
       },
@@ -41,7 +57,7 @@ export const updateReferencesController = async (
           ? "if some failed, check if the login of the customer is a number and not a text"
           : ""
       }`,
-      data: { failedCustomers },
+      data: { failedCustomers, successCustomers },
     });
   } catch (error) {
     console.error(error);
