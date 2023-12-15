@@ -23,7 +23,7 @@ export type CostumerType = {
   street_1: string;
   zip_code: string;
   city: string;
-  status: string;
+  status: "new" | "active" | "disabled" | "blocked";
   date_add: string;
   last_online: string;
   last_update: string;

@@ -19,12 +19,6 @@ export const updateReferencesController = async (
 
     const validCustomers = z.array(simpleCostumerSchema).parse(customers);
 
-    console.log(validCustomers);
-
-    const results = await Promise.allSettled(
-      validCustomers.map((c) => createProxyPayReferenceService(c))
-    );
-
     type SimpleCostumerWithNameType = SimpleCostumerType & {
       name: string;
     };
@@ -32,35 +26,22 @@ export const updateReferencesController = async (
     const failedCustomers: SimpleCostumerWithNameType[] = [];
     const successCustomers: SimpleCostumerWithNameType[] = [];
 
-    const [successCount, failureCount] = results.reduce(
-      (
-        [success, failure]: [number, number],
-        result: PromiseSettledResult<void>,
-        index: number
-      ): [number, number] => {
-        const cos = customers[index];
-        if (result.status === "fulfilled") {
-          successCustomers.push({
-            id: cos.id,
-            login: cos.login,
-            name: cos.name,
-          });
-          return [success + 1, failure];
-        } else {
-          failedCustomers.push({
-            id: cos.id,
-            login: cos.login,
-            name: cos.name,
-          });
-          return [success, failure + 1];
-        }
-      },
-      [0, 0]
-    );
+    for await (const c of validCustomers) {
+      if (isNaN(parseInt(c.login))) continue;
+      await createProxyPayReferenceService(c)
+        .catch(() => {
+          failedCustomers.push({ ...c, name: c.login });
+        })
+        .then(() => {
+          successCustomers.push({ ...c, name: c.login });
+        });
+    }
 
     return res.json({
-      message: `${successCount} were updated successfully and ${failureCount} failed. ${
-        failureCount > 0
+      message: `${successCustomers.length} were updated successfully and ${
+        failedCustomers.length
+      } failed. ${
+        failedCustomers.length > 0
           ? "if some failed, check if the login of the customer is a number and not a text"
           : ""
       }`,
