@@ -5,17 +5,13 @@ import { PaymentProps } from "./types";
 export default async ({
   knex,
   paymentId,
-  status = "pending",
+  status,
 }: {
   knex: Knex;
   paymentId: string;
-  status?: PaymentProps["status"];
+  status: PaymentProps["status"];
 }) => {
   await knex<PaymentProps>(tablesName.payments)
-    .insert({
-      payment_id: paymentId,
-      status,
-    })
-    .onConflict("payment_id")
-    .ignore();
+    .where("payment_id", paymentId)
+    .update({ status });
 };

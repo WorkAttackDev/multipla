@@ -3,34 +3,44 @@
   "version": "2.1.0",
   "description": "API for izinet company",
   "main": "index.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "dev": "nodemon index.ts",
+    "dev": "node --watch -r ts-node/register index.ts",
     "build": "cross-env NODE_ENV=production npx tsc && cp .env ./build",
     "start": "cross-env NODE_ENV=production node build/index.js",
-    "migrate:up": "npx knex migrate:latest  --knexfile src/config/db/knexfile.ts",
-    "migrate:new": "npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
-    "migrate:down": "npx knex migrate:down --knexfile src/config/db/knexfile.ts",
-    "migrate:prod:up": "cross-env NODE_ENV=production npx knex migrate:latest  --knexfile build/src/config/db/knexfile.js",
-    "migrate:prod:down": "cross-env NODE_ENV=production npx knex migrate:down  --knexfile build/src/config/db/knexfile.js"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "migrate:up": "npx knex migrate:latest --knexfile src/config/db/knexfile.ts",
+    "migrate:new": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
+    "migrate:down": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:down --knexfile src/config/db/knexfile.ts",
+    "migrate:prod:up": "cross-env NODE_ENV=production NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:latest --knexfile build/src/config/db/knexfile.js",
+    "migrate:prod:down": "cross-env NODE_ENV=production NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:down --knexfile build/src/config/db/knexfile.js",
+    "db:setup": "node scripts/prepare-env.cjs && node --env-file .env --strip-types scripts/db-setup.mts",
+    "reconcile": "node -r ts-node/register scripts/reconcile.ts",
+    "ngrok": "ngrok http 3000 --domain=lenient-turkey-moderately.ngrok-free.app"
   },
   "author": "WorkAttack",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.6.2",
     "cross-env": "^7.0.3",
-    "dotenv": "^16.3.1",
-    "express": "^4.17.1",
-    "knex": "^3.1.0",
-    "mysql": "^2.18.1",
-    "nodemailer": "^6.6.3",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "knex": "^3.2.10",
+    "mysql2": "^3.22.5",
+    "nodemailer": "^9.0.1",
     "splynx-nodejs-api": "^1.0.8",
-    "zod": "^3.22.4"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/express": "^4.17.13",
-    "@types/node": "^20.10.4",
-    "nodemon": "^3.0.2",
-    "ts-node": "^10.2.1",
-    "typescript": "^5.3.3"
+    "@types/express": "^4.17.25",
+    "@types/node": "^22.19.21",
+    "esbuild": "^0.28.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9"
   }
 }

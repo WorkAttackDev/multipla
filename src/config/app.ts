@@ -1,22 +1,43 @@
-// @ts-nocheck
+//@ts-expect-error
 import SplynxApi from "splynx-nodejs-api";
-import { isProduction } from "./utils";
+import { env, isProduction } from "./utils";
 
-const SPLYNX_HOST = isProduction
-  ? "https://splynx.izinet.ao/"
-  : "https://demo.splynx.com/";
+const SPLYNX_HOST =
+  env.SPLYNX_HOST ??
+  (isProduction ? "https://splynx.izinet.ao/" : "https://demo.splynx.com/");
 
-// export const API_KEY = "28a38377afc59b2018f00e95b1c98f4b";
-// export const API_SECRET = "9d2363075e714cfc9c59296bee7c0878";
-
-const LOGIN = isProduction ? process.env.SPLYNX_USER : "admin";
-const PASSWORD = isProduction ? process.env.SPLYNX_PASSWORD : "admin";
+const LOGIN = env.SPLYNX_USER;
+const PASSWORD = env.SPLYNX_PASSWORD;
 
 const splynxApi = new SplynxApi(SPLYNX_HOST);
 
-// splynxApi.debug = true;
+export type SplynxPaymentResponse = {
+  response: { id: number };
+  statusCode: number;
+};
 
-export const getSplynxApi = async () => {
+export type SplynxCustomer = {
+  id: string;
+  login: string;
+  name?: string;
+  billing_type?: string;
+  [key: string]: unknown;
+};
+
+export type SplynxApiClient = {
+  version: string;
+  login: (
+    type: string,
+    credentials: { login: string; password: string },
+  ) => Promise<void>;
+  get: (path: string) => Promise<{ response: unknown; statusCode: number }>;
+  post: (
+    path: string,
+    params: Record<string, unknown>,
+  ) => Promise<SplynxPaymentResponse>;
+};
+
+export const getSplynxApi = async (): Promise<SplynxApiClient> => {
   splynxApi.version = SplynxApi.API_VERSION_2_0;
 
   await splynxApi.login(SplynxApi.LOGIN_TYPE_ADMIN, {
@@ -24,5 +45,5 @@ export const getSplynxApi = async () => {
     password: PASSWORD,
   });
 
-  return splynxApi;
+  return splynxApi as unknown as SplynxApiClient;
 };

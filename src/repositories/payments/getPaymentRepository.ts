@@ -1,11 +1,10 @@
 import { knex } from "../../config/db";
 import { tablesName } from "../../config/db/utils";
-import ProxyPayPaymentPayload from "../../models/ProxyPayPaymentPayload";
 import { PaymentProps } from "./types";
 
-const getPaymentRepository = async (paymentPayload: ProxyPayPaymentPayload) =>
+const getPaymentRepository = async (paymentId: string) =>
   await knex<PaymentProps>(tablesName.payments)
-    .where("payment_id", paymentPayload.id.toString())
+    .where("payment_id", paymentId)
     .first();
 
 export default getPaymentRepository;

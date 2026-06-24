@@ -12,6 +12,21 @@
             "database": "multipla",
             "username": "root",
             "password": "root"
+        },
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "multipla",
+            "database": "izinet_payment_api",
+            "username": "root",
+            "askForPassword": true
         }
     ],
     "cSpell.words": [

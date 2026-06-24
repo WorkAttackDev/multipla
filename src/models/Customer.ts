@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-export const simpleCostumerSchema = z.object({
+export const simpleCustomerSchema = z.object({
   id: z.string(),
   login: z.string(),
 });
 
-export type SimpleCostumerType = z.infer<typeof simpleCostumerSchema>;
+export type SimpleCustomerType = z.infer<typeof simpleCustomerSchema>;
 
-export type CostumerType = {
+export type CustomerType = {
   id: string;
   billing_type: string;
   partner_id: string;

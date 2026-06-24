@@ -1,0 +1,31 @@
+### Mock Payment — Create a payment in ProxyPay sandbox
+# Simulates a customer paying at a Multicaixa terminal.
+# The reference_id must already exist in ProxyPay.
+#
+# Prerequisites:
+#   1. Your .env has PROXY_PAY_API_KEY set
+#   2. ngrok is running so ProxyPay can reach your /proxypaycallback
+#   3. A reference has been created for the customer
+#
+# Requires: VS Code REST Client (humao.rest-client)
+
+@baseUrl = https://api.sandbox.proxypay.co.ao
+@token = {{$dotenv PROXY_PAY_API_KEY}}
+@referenceId = 599799185
+@amount = 500
+
+### Create payment
+POST {{baseUrl}}/payments
+Authorization: Token {{token}}
+Accept: application/vnd.proxypay.v2+json
+Content-Type: application/json
+
+{
+  "reference_id": {{referenceId}},
+  "amount": "{{amount}}"
+}
+
+### List pending payments
+GET {{baseUrl}}/payments
+Authorization: Token {{token}}
+Accept: application/vnd.proxypay.v2+json

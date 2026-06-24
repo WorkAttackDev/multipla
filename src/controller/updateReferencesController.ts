@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
-import { getSplynxApi } from "../config/app";
-import { SimpleCostumerType, simpleCostumerSchema } from "../models/Costumer";
+import { getSplynxApi, SplynxCustomer } from "../config/app";
+import { SimpleCustomerType, simpleCustomerSchema } from "../models/Customer";
 import createProxyPayReferenceService from "../services/createProxyPayReferenceService";
 import { z } from "zod";
+import { logger } from "../utils";
 
-type SimpleCostumerWithNameType = SimpleCostumerType & {
+type SimpleCustomerWithNameType = SimpleCustomerType & {
   name: string;
 };
 
@@ -18,7 +19,7 @@ const paramsSchema = z.object({
 
 export const updateReferencesController = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   try {
     const params = paramsSchema.safeParse(req.query);
@@ -29,10 +30,14 @@ export const updateReferencesController = async (
 
     const { limit, offset } = params.data;
 
-    const customersList = (
-      (await (await getSplynxApi()).get("admin/customers/customer"))
-        ?.response as any[]
-    ).filter((c) => !isNaN(parseInt(c.login)));
+    const splynxResponse = await (
+      await getSplynxApi()
+    ).get("admin/customers/customer");
+
+    const customersList = z
+      .array(z.record(z.unknown()))
+      .parse(splynxResponse?.response)
+      .filter((c) => !isNaN(parseInt(String(c.login)))) as SplynxCustomer[];
 
     if (!customersList?.length) {
       return res.status(404).json({ message: "no customers found" });
@@ -44,38 +49,38 @@ export const updateReferencesController = async (
       return res.status(404).json({ message: "no customers found" });
     }
 
-    const validCustomers = z.array(simpleCostumerSchema).parse(customers);
+    const validCustomers = z.array(simpleCustomerSchema).parse(customers);
 
     const results = await Promise.allSettled(
-      validCustomers.map((c) => createProxyPayReferenceService(c))
+      validCustomers.map((c) => createProxyPayReferenceService(c)),
     );
 
     const { failedCustomers, successCustomers } = results.reduce(
       (
         acc: {
-          successCustomers: SimpleCostumerWithNameType[];
-          failedCustomers: SimpleCostumerWithNameType[];
+          successCustomers: SimpleCustomerWithNameType[];
+          failedCustomers: SimpleCustomerWithNameType[];
         },
         result,
-        index
+        index,
       ) => {
         const cos = customers[index];
         if (result.status === "fulfilled") {
           acc.successCustomers.push({
             id: cos.id,
             login: cos.login,
-            name: cos.name,
+            name: cos.name ?? "",
           });
         } else {
           acc.failedCustomers.push({
             id: cos.id,
             login: cos.login,
-            name: cos.name,
+            name: cos.name ?? "",
           });
         }
         return acc;
       },
-      { failedCustomers: [], successCustomers: [] }
+      { failedCustomers: [], successCustomers: [] },
     );
 
     return res.json({
@@ -89,7 +94,9 @@ export const updateReferencesController = async (
       data: { failedCustomers, successCustomers },
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "error updating references" });
+    logger.error("error updating references", {
+      error: error instanceof Error ? error.message : error,
+    });
+    return res.status(500).json({ message: "error updating references" });
   }
 };
