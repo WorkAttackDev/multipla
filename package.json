@@ -20,6 +20,7 @@
     "migrate:prod:down": "cross-env NODE_ENV=production NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:down --knexfile build/src/config/db/knexfile.js",
     "db:setup": "node scripts/prepare-env.cjs && node --env-file .env --strip-types scripts/db-setup.mts",
     "reconcile": "node -r ts-node/register scripts/reconcile.ts",
+    "reconcile:dev": "node --env-file .env -r ts-node/register scripts/reconcile.ts",
     "ngrok": "ngrok http 3000 --domain=lenient-turkey-moderately.ngrok-free.app"
   },
   "author": "WorkAttack",
