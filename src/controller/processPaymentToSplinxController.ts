@@ -21,14 +21,21 @@ export const processPaymentToSplinxController = async (
     return res.status(400).json({ message: "no request was provided body" });
 
   const paymentPayload: ProxyPayPaymentPayload = req.body;
-  const paymentId = paymentPayload.id.toString();
-
-  const existingPayment = await getPaymentRepository(paymentId);
-
-  if (existingPayment?.status === "completed")
-    return res.status(200).json({ message: "payment already exists" });
+  let paymentId = "";
 
   try {
+    const id = paymentPayload.id;
+    if (!id) {
+      log.error("missing payment id in ProxyPay callback");
+      return res.status(400).json({ message: "invalid payment payload: missing id" });
+    }
+
+    paymentId = id.toString();
+    const existingPayment = await getPaymentRepository(paymentId);
+
+    if (existingPayment?.status === "completed")
+      return res.status(200).json({ message: "payment already exists" });
+
     await createPaymentRepository({ knex, paymentId, status: "pending" });
 
     const checkAgain = await getPaymentRepository(paymentId);

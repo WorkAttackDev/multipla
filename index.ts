@@ -134,7 +134,7 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 
 function rateLimitMiddleware(req: Request, res: Response, next: NextFunction) {
   const windowMs = 60_000;
-  const maxRequests = 30;
+  const maxRequests = 100;
   const key = req.ip ?? "unknown";
   const now = Date.now();
   const entry = requestCounts.get(key);

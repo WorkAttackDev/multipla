@@ -2,6 +2,7 @@ import { getSplynxApi } from "../src/config/app";
 import { knex } from "../src/config/db";
 import { proxyPay } from "../src/config/proxyPay";
 import { tablesName } from "../src/config/db/utils";
+import createPaymentRepository from "../src/repositories/payments/createPaymentRepository";
 import updatePaymentStatusRepository from "../src/repositories/payments/updatePaymentStatusRepository";
 import createFailedPaymentRepository from "../src/repositories/payments/createFailedPaymentRepository";
 import { formatTodayDate, logger } from "../src/utils";
@@ -26,13 +27,21 @@ async function reconcile() {
 
     for (const payment of pendingPayments) {
       const paymentId = payment.id.toString();
-      const localPayment = await knex(tablesName.payments)
+      let localPayment = await knex(tablesName.payments)
         .where("payment_id", paymentId)
         .first();
 
       if (!localPayment) {
-        result.skipped++;
-        continue;
+        await createPaymentRepository({ knex, paymentId, status: "pending" });
+        localPayment = await knex(tablesName.payments)
+          .where("payment_id", paymentId)
+          .first();
+
+        if (!localPayment) {
+          result.errors.push({ paymentId, error: "failed to create local payment record" });
+          result.failed++;
+          continue;
+        }
       }
 
       if (localPayment.status === "completed") {
