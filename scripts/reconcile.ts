@@ -5,7 +5,7 @@ import { tablesName } from "../src/config/db/utils";
 import createPaymentRepository from "../src/repositories/payments/createPaymentRepository";
 import updatePaymentStatusRepository from "../src/repositories/payments/updatePaymentStatusRepository";
 import createFailedPaymentRepository from "../src/repositories/payments/createFailedPaymentRepository";
-import { formatTodayDate, logger } from "../src/utils";
+import { formatErrorMessage, formatTodayDate, logger } from "../src/utils";
 
 const log = logger.child({ correlation_id: "reconciliation" });
 
@@ -92,7 +92,7 @@ async function reconcile() {
         await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
         result.reprocessed++;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage = formatErrorMessage(error);
 
         try {
           await updatePaymentStatusRepository({ knex, paymentId, status: "failed" });

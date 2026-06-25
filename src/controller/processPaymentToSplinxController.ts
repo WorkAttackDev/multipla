@@ -8,7 +8,7 @@ import createPaymentRepository from "../repositories/payments/createPaymentRepos
 import updatePaymentStatusRepository from "../repositories/payments/updatePaymentStatusRepository";
 import createFailedPaymentRepository from "../repositories/payments/createFailedPaymentRepository";
 import getPaymentRepository from "../repositories/payments/getPaymentRepository";
-import { formatTodayDate, generateCorrelationId, logger } from "../utils";
+import { formatErrorMessage, formatTodayDate, generateCorrelationId, logger } from "../utils";
 
 export const processPaymentToSplinxController = async (
   req: Request,
@@ -103,7 +103,7 @@ export const processPaymentToSplinxController = async (
         knex,
         paymentId,
         customerId: paymentPayload.custom_fields.user_id || "unknown",
-        errorMessage: error instanceof Error ? error.message : String(error),
+        errorMessage: formatErrorMessage(error),
       });
     } catch (dbError) {
       log.error("failed to record payment failure", {
