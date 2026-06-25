@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/opt/izinet-api}"
+APP_DIR="${APP_DIR:-$(cd "$(dirname "$0")" && pwd)}"
 BRANCH="${BRANCH:-main}"
 
 RED='\033[0;31m'
