@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="/opt/izinet-api"
-BRANCH="main"
+APP_DIR="${APP_DIR:-/opt/izinet-api}"
+BRANCH="${BRANCH:-main}"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -19,7 +19,11 @@ if [ ! -d "$APP_DIR" ]; then
   exit 1
 fi
 
-if ! command -v node &> /dev/null; then
+# nvm: auto-switch to version in .nvmrc
+if [ -s "${NVM_DIR:-$HOME/.nvm}/nvm.sh" ]; then
+  source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+  [ -f "$APP_DIR/.nvmrc" ] && nvm use
+elif ! command -v node &> /dev/null; then
   error "Node.js is not installed."
   exit 1
 fi
@@ -52,13 +56,23 @@ info "Pulling latest code ($BRANCH)"
 git pull origin "$BRANCH"
 
 info "Installing dependencies"
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile || pnpm install
+
+# backup previous build for rollback
+[ -d build ] && cp -r build build.bak
 
 info "Building TypeScript"
 pnpm build
 
 info "Running database migrations"
-pnpm migrate:prod:up
+if ! pnpm migrate:prod:up; then
+  error "Migration failed — restoring previous build"
+  rm -rf build
+  [ -d build.bak ] && mv build.bak build
+  pm2 startOrReload ecosystem.config.js --update-env
+  exit 1
+fi
+rm -rf build.bak
 
 info "Restarting PM2 processes"
 pm2 startOrReload ecosystem.config.js --update-env
