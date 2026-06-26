@@ -70,6 +70,10 @@ describe("processPaymentsToSplinxController", () => {
     vi.mocked(proxyPay).mockResolvedValueOnce(undefined); // DELETE payment 3
 
     const api = {
+      get: vi
+        .fn()
+        .mockResolvedValueOnce({ response: [], statusCode: 200 })
+        .mockResolvedValueOnce({ response: [], statusCode: 200 }),
       post: vi
         .fn()
         .mockResolvedValueOnce({ response: { id: 1000 }, statusCode: 201 })
@@ -110,6 +114,50 @@ describe("processPaymentsToSplinxController", () => {
     );
     expect(updatePaymentStatusRepository.default).toHaveBeenCalledWith(
       expect.objectContaining({ paymentId: "3", status: "completed" }),
+    );
+  });
+
+  it("recovers payments that already exist in Splynx (crash after POST before status update)", async () => {
+    const { proxyPay } = await import("../config/proxyPay");
+    const { getSplynxApi } = await import("../config/app");
+    const updatePaymentStatusRepository = await import(
+      "../repositories/payments/updatePaymentStatusRepository"
+    );
+
+    const payments = [
+      { id: 1, custom_fields: { user_id: "100" }, amount: "10" },
+    ];
+
+    vi.mocked(proxyPay).mockResolvedValueOnce(payments);
+    vi.mocked(proxyPay).mockResolvedValueOnce(undefined); // DELETE after recovery
+
+    const api = {
+      get: vi.fn().mockResolvedValueOnce({
+        response: [{ id: 42, receipt_number: "1" }],
+        statusCode: 200,
+      }),
+      post: vi.fn(),
+    };
+    vi.mocked(getSplynxApi).mockResolvedValue(api as any);
+
+    const req = {} as Request;
+    const res = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn().mockReturnThis(),
+    } as unknown as Response;
+
+    await processPaymentsToSplinxController(req, res);
+
+    // Should mark as completed without calling Splynx POST
+    expect(api.post).not.toHaveBeenCalled();
+    expect(updatePaymentStatusRepository.default).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentId: "1", status: "completed" }),
+    );
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "done",
+        succeeded: ["1"],
+      }),
     );
   });
 

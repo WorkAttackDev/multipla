@@ -9,17 +9,20 @@ import { formatErrorMessage, formatTodayDate, logger } from "../src/utils";
 
 const log = logger.child({ correlation_id: "reconciliation" });
 
+const MAX_RETRIES = 3;
+
 interface ReconciliationResult {
   reprocessed: number;
   failed: number;
   skipped: number;
   errors: { paymentId: string; error: string }[];
+  retry_exhausted: number;
 }
 
 async function reconcile() {
   log.info("starting reconciliation");
 
-  const result: ReconciliationResult = { reprocessed: 0, failed: 0, skipped: 0, errors: [] };
+  const result: ReconciliationResult = { reprocessed: 0, failed: 0, skipped: 0, errors: [], retry_exhausted: 0 };
 
   try {
     const pendingPayments = await proxyPay<any[]>("/payments");
@@ -46,8 +49,26 @@ async function reconcile() {
 
       if (localPayment.status === "completed") {
         log.warn(`payment ${paymentId} is completed in DB but still pending in ProxyPay — deleting`);
-        await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+        try {
+          await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+          log.info("reconciliation: proxyPay payment deleted", { payment_id: paymentId });
+        } catch (error) {
+          log.error("reconciliation: failed to delete payment from ProxyPay", {
+            payment_id: paymentId,
+            error: formatErrorMessage(error),
+          });
+        }
         result.reprocessed++;
+        continue;
+      }
+
+      const failedRecord = await knex(tablesName.failed_payments)
+        .where("payment_id", paymentId)
+        .first();
+
+      if (failedRecord && failedRecord.retry_count >= MAX_RETRIES) {
+        log.warn(`payment ${paymentId} exceeded max retries (${MAX_RETRIES}), skipping`);
+        result.retry_exhausted++;
         continue;
       }
 
@@ -81,6 +102,35 @@ async function reconcile() {
           field_5: "",
         };
 
+        try {
+          const existingResponse = await api.get(
+            `admin/finance/payments?main_attributes[receipt_number]=${paymentId}`,
+          );
+          const existingList = existingResponse.response as { id: number }[];
+          if (existingList.length > 0) {
+            log.info("reconciliation: payment already exists in Splynx — marking completed", {
+              payment_id: paymentId,
+              splynx_payment_id: existingList[0].id,
+            });
+            await updatePaymentStatusRepository({ knex, paymentId, status: "completed" });
+            try {
+              await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+            } catch (proxyError) {
+              log.error("reconciliation: failed to delete payment from ProxyPay after Splynx recovery", {
+                payment_id: paymentId,
+                error: formatErrorMessage(proxyError),
+              });
+            }
+            result.reprocessed++;
+            continue;
+          }
+        } catch (checkError) {
+          log.warn("reconciliation: failed to check Splynx for existing payment, proceeding with POST", {
+            payment_id: paymentId,
+            error: formatErrorMessage(checkError),
+          });
+        }
+
         const data = await api.post("admin/finance/payments", postParams);
 
         log.info("reconciliation: splynx payment created", {
@@ -89,7 +139,15 @@ async function reconcile() {
         });
 
         await updatePaymentStatusRepository({ knex, paymentId, status: "completed" });
-        await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+        try {
+          await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+          log.info("reconciliation: proxyPay payment deleted", { payment_id: paymentId });
+        } catch (error) {
+          log.error("reconciliation: failed to delete payment from ProxyPay after Splynx creation", {
+            payment_id: paymentId,
+            error: formatErrorMessage(error),
+          });
+        }
         result.reprocessed++;
       } catch (error) {
         const errorMessage = formatErrorMessage(error);

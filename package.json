@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "migrate:up": "npx knex migrate:latest --knexfile src/config/db/knexfile.ts",
+    "migrate:up": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:latest --knexfile src/config/db/knexfile.ts",
     "migrate:new": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:make init --knexfile src/config/db/knexfile.ts",
     "migrate:down": "cross-env NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:down --knexfile src/config/db/knexfile.ts",
     "migrate:prod:up": "cross-env NODE_ENV=production NODE_OPTIONS=\"-r dotenv/config\" npx knex migrate:latest --knexfile build/src/config/db/knexfile.js",

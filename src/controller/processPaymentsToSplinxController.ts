@@ -49,7 +49,15 @@ export const processPaymentsToSplinxController = async (
         if (checkAgain && checkAgain.status !== "pending") {
           if (checkAgain.status === "completed") {
             succeeded.push(paymentId);
-            await proxyPay(`/payments/${paymentId}`, { method: "DELETE" }).catch(() => {});
+            try {
+              await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+              log.info("proxyPay payment deleted (already completed)", { payment_id: paymentId });
+            } catch (error) {
+              log.error("failed to delete already-completed payment from ProxyPay", {
+                payment_id: paymentId,
+                error: formatErrorMessage(error),
+              });
+            }
           }
           continue;
         }
@@ -89,6 +97,35 @@ export const processPaymentsToSplinxController = async (
           field_5: "",
         };
 
+        try {
+          const existingResponse = await api.get(
+            `admin/finance/payments?main_attributes[receipt_number]=${paymentId}`,
+          );
+          const existingList = existingResponse.response as { id: number }[];
+          if (existingList.length > 0) {
+            log.info("payment already exists in Splynx — marking completed", {
+              payment_id: paymentId,
+              splynx_payment_id: existingList[0].id,
+            });
+            await updatePaymentStatusRepository({ knex, paymentId, status: "completed" });
+            try {
+              await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+            } catch (proxyError) {
+              log.error("failed to delete payment from ProxyPay after Splynx recovery", {
+                payment_id: paymentId,
+                error: formatErrorMessage(proxyError),
+              });
+            }
+            succeeded.push(paymentId);
+            continue;
+          }
+        } catch (checkError) {
+          log.warn("failed to check Splynx for existing payment, proceeding with POST", {
+            payment_id: paymentId,
+            error: formatErrorMessage(checkError),
+          });
+        }
+
         const data = await api.post("admin/finance/payments", postParams);
 
         log.info("splynx payment created", {
@@ -103,7 +140,15 @@ export const processPaymentsToSplinxController = async (
         });
 
         // Acknowledge the payment in ProxyPay
-        await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+        try {
+          await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+          log.info("proxyPay payment deleted", { payment_id: paymentId });
+        } catch (error) {
+          log.error("failed to delete payment from ProxyPay after Splynx creation", {
+            payment_id: paymentId,
+            error: formatErrorMessage(error),
+          });
+        }
 
         succeeded.push(paymentId);
       } catch (error) {

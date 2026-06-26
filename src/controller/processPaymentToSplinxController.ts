@@ -75,6 +75,27 @@ export const processPaymentToSplinxController = async (
       field_5: "",
     };
 
+    try {
+      const existingResponse = await api.get(
+        `admin/finance/payments?main_attributes[receipt_number]=${paymentId}`,
+      );
+      const existingList = existingResponse.response as { id: number }[];
+      if (existingList.length > 0) {
+        log.info("payment already exists in Splynx — marking completed", {
+          payment_id: paymentId,
+          splynx_payment_id: existingList[0].id,
+        });
+        await updatePaymentStatusRepository({ knex, paymentId, status: "completed" });
+        await proxyPay(`/payments/${paymentId}`, { method: "DELETE" });
+        return res.json({ message: "success (recovered)", paymentId });
+      }
+    } catch (checkError) {
+      log.warn("failed to check Splynx for existing payment, proceeding with POST", {
+        payment_id: paymentId,
+        error: formatErrorMessage(checkError),
+      });
+    }
+
     const data = await api.post("admin/finance/payments", postParams);
 
     log.info("splynx payment created", {
